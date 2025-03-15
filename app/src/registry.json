@@ -1,0 +1,76 @@
+{
+  "registry": {
+    "states": {
+      "canvas": {
+        "width": 800,
+        "height": 600,
+        "backgroundColor": "#FFFFFF"
+      },
+      "container": {
+        "type": "flex-container",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "alignItems": "center"
+      },
+      "flex-container": {
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "alignItems": "center"
+      },
+      "table": {
+        "border": "1px solid #000000",
+        "borderCollapse": "collapse"
+      },
+      "content": {
+        "type": "text",
+        "text": "Hello World!",
+        "fontSize": 24,
+        "color": "#000000"
+      },
+      "text": {
+        "fontSize": 24,
+        "color": "#000000"
+      },
+      "image": {
+        "src": "",
+        "width": 100,
+        "height": 100
+      },
+      "link": {
+        "href": "",
+        "text": "Link"
+      },
+      "nested": {
+        "type": "container",
+        "containerType": "flex-container"
+      }
+    },
+    "classes": {
+      "canvas": {
+        "container": true
+      },
+      "container": {
+        "flex-container": true,
+        "table": true
+      },
+      "flex-container": {
+        "content": true
+      },
+      "table": {
+        "content": true
+      },
+      "content": {
+        "text": true,
+        "image": true,
+        "link": true,
+        "nested": true
+      },
+      "text": {},
+      "image": {},
+      "link": {},
+      "nested": {
+        "container": true
+      }
+    }
+  }
+}
