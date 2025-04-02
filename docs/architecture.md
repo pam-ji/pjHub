@@ -2,41 +2,118 @@
 # PjHub System Architecture
 
 ```mermaid
-graph TD
-    User[User] --> Frontend[React Frontend]
-    Frontend --> |GraphQL| API[GraphQL API]
-    API --> |Cache| Redis[Redis Cache]
-    API --> |Data| DB[PostgreSQL]
-    API --> |Storage| MinIO[MinIO Storage]
-    API --> |ML Models| ML[ML Services]
-    
-    subgraph Frontend Components
-        Frontend --> Dashboard[Admin Dashboard]
-        Frontend --> HTMLGen[HTML Generator]
-        Frontend --> SlaySpire[SlAI The Spire]
+flowchart TD
+    %% Infrastructure Diagram
+    classDef storage fill:#FF9999,color:#000000,stroke:#FF6666
+    classDef compute fill:#99FF99,color:#000000,stroke:#66CC66
+    classDef security fill:#9999FF,color:#000000,stroke:#6666CC
+    classDef monitoring fill:#FFFF99,color:#000000,stroke:#CCCC66
+    classDef cd fill:#FF99FF,color:#000000,stroke:#FF66FF
+
+    %% Frontend Layer
+    subgraph Frontend["Frontend Applications"]
+        F[React Frontend]:::compute
+        AB[HTML Generator]:::compute
+        AC[SlAI The Spire]:::compute
     end
 
-    subgraph Backend Services
-        API --> Auth[Auth Service]
-        API --> RateLimit[Rate Limiter]
-        API --> ACL[Access Control]
+    %% API Layer
+    subgraph API["API Layer"]
+        E[Traefik]:::compute --> D[GraphQL API]:::compute
+        E --> F
+        D --> AB
+        D --> AC
     end
+
+    %% Data Layer
+    subgraph Data["Data Services"]
+        B[PostgreSQL]:::storage
+        C[Redis]:::compute
+        A[MinIO]:::storage
+        ES[Elasticsearch]:::storage
+        D --> B
+        D --> C
+        D --> A
+        D --> ES
+    end
+
+    %% ML Services
+    subgraph ML["ML Services"]
+        H[ML Training]:::compute
+        AD[PyTorch Model]:::compute
+        H --> AD
+        AD --> B
+        AD --> A
+    end
+
+    %% Monitoring
+    subgraph Monitoring["Monitoring Stack"]
+        J[Grafana]:::monitoring
+        P[Prometheus]:::monitoring
+        I[Elastic SIEM]:::monitoring
+        J --> P
+        P --> D
+        I --> ES
+    end
+
+    %% Security
+    subgraph Security["Security Components"]
+        R[Keycloak]:::security
+        V[ModSecurity]:::security
+        R --> D
+        V --> E
+    end
+
+    %% CI/CD
+    subgraph CD["CI/CD Pipeline"]
+        X[GitHub Actions]:::cd
+        Y[ArgoCD]:::cd
+        X --> Y
+        Y --> E
+    end
+
+    %% Styling
+    classDef storage fill:#FF9999,color:#000000,stroke:#FF6666
+    classDef compute fill:#99FF99,color:#000000,stroke:#66CC66
+    classDef security fill:#9999FF,color:#000000,stroke:#6666CC
+    classDef monitoring fill:#FFFF99,color:#000000,stroke:#CCCC66
+    classDef cd fill:#FF99FF,color:#000000,stroke:#FF66FF
 ```
 
-## System Components
+## Component Overview
 
-1. Frontend (React)
-   - Admin Dashboard
-   - HTML Generator
-   - SlAI The Spire Game
+### Frontend Applications
+- React-based main interface
+- HTML Generator tool
+- SlAI The Spire game interface
 
-2. Backend (GraphQL + Go)
-   - Authentication & Authorization
-   - Rate Limiting
-   - Access Control Lists
-   - ML Model Integration
+### API Layer
+- Traefik for routing and load balancing
+- GraphQL API gateway
+- Service mesh integration
 
-3. Storage
-   - PostgreSQL for structured data
-   - Redis for caching
-   - MinIO for file storage
+### Data Services
+- PostgreSQL for persistent storage
+- Redis for caching
+- MinIO for object storage
+- Elasticsearch for logging and search
+
+### ML Services
+- PyTorch model training
+- ML inference API
+- Model storage and versioning
+
+### Monitoring
+- Grafana dashboards
+- Prometheus metrics
+- Elastic SIEM for security monitoring
+
+### Security
+- Keycloak authentication
+- ModSecurity WAF
+- Access control and encryption
+
+### CI/CD Pipeline
+- GitHub Actions automation
+- ArgoCD GitOps deployment
+- Continuous monitoring and testing

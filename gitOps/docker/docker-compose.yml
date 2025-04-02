@@ -3,7 +3,7 @@ services:
   htmlgen-frontend:
     build:
       context: .
-      dockerfile: docker/htmlgen/Dockerfile.frontend
+    dockerfile: htmlgen/Dockerfile.frontend
     ports:
       - "3000:3000"
     environment:
@@ -14,7 +14,7 @@ services:
   htmlgen-api:
     build:
       context: .
-      dockerfile: docker/htmlgen/Dockerfile.api
+      dockerfile: htmlgen/Dockerfile.api
     ports:
       - "5000:5000"
     environment:
@@ -27,7 +27,7 @@ services:
   slaithespire-ml:
     build:
       context: .
-      dockerfile: docker/slaithespire/Dockerfile.ml
+      dockerfile: slaithespire/Dockerfile.ml
     volumes:
       - ./data:/data
     environment:
@@ -37,7 +37,7 @@ services:
   slaithespire-api:
     build:
       context: .
-      dockerfile: docker/slaithespire/Dockerfile.api
+      dockerfile: slaithespire/Dockerfile.api
     ports:
       - "5001:5000"
     environment:
@@ -59,7 +59,11 @@ services:
 
   graphql-api:
     build: 
-      context: ../../backend/graphql
+      
+      context: .
+      dockerfile: graphQl/Dockerfile.graphQl
+       ../../backend/graphql
+      
     environment:
       - AWS_ENDPOINT=http://localstack:4566
       - REDIS_HOST=redis
@@ -108,16 +112,17 @@ services:
       - ./minio/data:/data
 
   grafana:
-    image: grafana/grafana-oss
+    build:
+      context: .
+      dockerfile:  /grafana/Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
-      - ./grafana/dashboards:/etc/grafana/dashboards
     environment:
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SERVER_HTTP_PORT=3000
+    networks:
+      - app-network
     depends_on:
       - prometheus
 
