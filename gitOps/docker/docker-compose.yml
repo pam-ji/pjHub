@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   htmlgen-frontend:
     build:
@@ -109,7 +108,7 @@ services:
       - ./minio/data:/data
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana-oss
     ports:
       - "3000:3000"
     volumes:
@@ -184,6 +183,12 @@ services:
       - PYTORCH_HOST=0.0.0.0
     depends_on:
       - graphql-api
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
   api:
     image: your-api-image:latest
