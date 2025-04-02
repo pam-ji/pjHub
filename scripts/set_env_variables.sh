@@ -1,38 +1,30 @@
 #!/bin/bash
 
-# Datei mit den Environment-Variablen
-ENV_FILE="docker-compose.yml"
+export testuser="testuser"
+export POSTGRES_USER="testuser"
+export POSTGRES_PASSWORD="testpassword"
+export POSTGRES_DB="testdb"
+export MINIO_ROOT_USER="minio"
+export MINIO_ROOT_PASSWORD="minio123"
+export USER="git"
+export USER_UID="1000"
+export USER_GID="1000"
+export FORGEJO__server__SSH_LISTEN_PORT="22"
+export FORGEJO__server__SSH_PORT="9022"
+echo ------- -------------------- -------
+echo ------- Setting Env Varis ----------
+echo POSTGRES_USER: $POSTGRES_USER
+echo testuser: $testuser
+echo POSTGRES_USER: $POSTGRES_USER
+echo POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+echo POSTGRES_DB: $POSTGRES_DB
+echo MINIO_ROOT_USER: $MINIO_ROOT_USER
+echo MINIO_ROOT_PASSWORD: $MINIO_ROOT_PASSWORD
+echo USER: $USER
+echo USER_UID: $USER_UID
+echo USER_GID: $USER_GID
+echo FORGEJO__server__SSH_LISTEN_PORT: $FORGEJO__server__SSH_LISTEN_PORT
+echo FORGEJO__server__SSH_PORT: $FORGEJO__server__SSH_PORT
+echo ------- -------------------- -------
 
-# Testwerte für das Development
-TEST_VALUES=(
-  "POSTGRES_USER=testuser"
-  "POSTGRES_PASSWORD=testpassword"
-  "POSTGRES_DB=testdb"
-  "MINIO_ROOT_USER=minio"
-  "MINIO_ROOT_PASSWORD=minio123"
-  "USER=git"
-  "USER_UID=1000"
-  "USER_GID=1000"
-  "FORGEJO__server__SSH_LISTEN_PORT=22"
-  "FORGEJO__server__SSH_PORT=9022"
-  # Füge hier weitere Testwerte hinzu
-)
-
-# Exportiere die Environment-Variablen aus dem File
-while IFS="=" read -r key value; do
-  # Setze den Testwert für die Variable
-  for test_value in "${TEST_VALUES[@]}"; do
-    if [ "$key" = "${test_value%%=*}" ]; then
-      value="${test_value#*=}"
-      break
-    fi
-  done
-  # Exportiere die Variable
-  export "$key=$value"
-done < <(grep -oE "^[a-zA-Z_][a-zA-Z_0-9]*=[^ ]+" "$ENV_FILE")
-
-# Überprüfe, ob die Variablen korrekt exportiert wurden
-echo "Exportierte Environment-Variablen:"
-for key in "${!@}"; do
-  echo "$key=${!key}"
-done
+ENV_FILE="../docker-compose.yml"
