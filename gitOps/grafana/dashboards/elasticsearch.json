@@ -1,0 +1,46 @@
+
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "panels": [
+    {
+      "datasource": "prometheus",
+      "title": "Elasticsearch Cluster Health",
+      "targets": [
+        {
+          "expr": "elasticsearch_cluster_health_status",
+          "legendFormat": "Cluster Health"
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": "prometheus",
+      "title": "JVM Heap Usage",
+      "targets": [
+        {
+          "expr": "elasticsearch_jvm_memory_used_bytes{area='heap'}",
+          "legendFormat": "Heap Used"
+        }
+      ],
+      "type": "gauge"
+    },
+    {
+      "datasource": "prometheus",
+      "title": "Document Count",
+      "targets": [
+        {
+          "expr": "elasticsearch_indices_docs_total",
+          "legendFormat": "Documents"
+        }
+      ],
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "title": "Elasticsearch Dashboard",
+  "version": 1
+}

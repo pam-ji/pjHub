@@ -79,20 +79,36 @@ docker-compose -f gitOps/docker/docker-compose.yml up
 ## Project Structure
 ```
 PjHub
-├── apps/                  # Main applications
-│   ├── html_generator/    # HTML generation app
-│   └── slay-the-spire/   # Game AI project
-├── backend/              # Backend services
-│   └── graphql/         # GraphQL API
-├── frontend/            # Main frontend app
-├── gitOps/             # Infrastructure configs
-│   ├── docker/         # Container configs
-│   ├── grafana/        # Monitoring setup
-│   └── redis/          # Cache configs
-├── IaC/                # Infrastructure as Code
-│   ├── ansible/        # Configuration management
-│   └── terraform/      # Infrastructure specs
-└── scripts/            # Utility scripts
+├── .github/                    # GitHub Actions workflows
+├── apps/                       # Main applications
+│   ├── html_generator/         # HTML generation app
+│   │   ├── public/            # Static assets
+│   │   └── src/               # Source code
+│   └── slay-the-spire/        # Game AI project
+│       └── src/               # Source code & ML models
+├── backend/                    # Backend services
+│   └── graphql/               # GraphQL API
+│       ├── config/            # Service configurations
+│       └── schema/            # GraphQL schema definitions
+├── docs/                       # Documentation
+│   ├── api.md                 # API documentation
+│   ├── architecture.md        # System architecture
+│   └── ml.md                  # ML components docs
+├── frontend/                   # Main frontend app
+│   ├── public/                # Static assets
+│   └── src/                   # Source code
+├── gitOps/                    # Infrastructure configs
+│   ├── docker/                # Container configurations
+│   ├── grafana/               # Monitoring & dashboards
+│   ├── postgres/              # Database configs
+│   └── redis/                 # Cache configs
+├── IaC/                       # Infrastructure as Code
+│   ├── ansible/               # Configuration management
+│   │   └── argocd/           # ArgoCD configurations
+│   └── terraform/             # Infrastructure specs
+│       └── modules/           # Terraform modules
+├── scripts/                   # Utility scripts
+└── tests/                     # Test suites
 ```
 
 ## Monitoring

@@ -160,6 +160,9 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - cluster.name=pjhub-cluster
+      - node.name=pjhub-node
+      - bootstrap.memory_lock=true
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -169,6 +172,8 @@ services:
       memlock:
         soft: -1
         hard: -1
+    networks:
+      - app-network
 
   pytorch:
     image: your-pytorch-image:latest
