@@ -34,7 +34,7 @@
 - cicd pipeline sand react router for fluid deploiments
 - redis caching
 - secrets via hashicorp vault
-
+- impementing the folder structure for the backend
 - OPTIONAL! WAF/Shield Alternative === ModSecurity (NGINX/Traefik Plugin) + Suricata (IDS)
 - OPTIONAL! AWS VPC/Networking alternative === Calico (Netzwerk-Policies) + Open vSwitch
 - terraform and ansible iac deployements
