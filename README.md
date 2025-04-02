@@ -45,14 +45,14 @@
 postgres with redis and  
 
 # applications
-## ji's httml generator and editor
+## ji's html generator and editor(/apps/html_generator)  
 - html generator with react and typescript
 - create a api endpoint or service for the model that can be called from the frontend
 . the model can use code + commands as input for the html code generation
 - GraphQl Api Endpoint
 - sql db entries with redis caching for the api calls
 
-## marlaria's slAI-the-spire  🚀
+## marlaria's slAI-the-spire (/apps/slay-the-spire)
 Maybe create an AI model trained on slay the spire content, after that feed it screenshots of someone playing and let the ai make all the descicions and see what it does 
 - create backend using postgres for the user 
 - redis for caching
