@@ -1,20 +1,12 @@
-# PjHub Infrastructure
+# PjHub
+Core Features
 
-## Applications
+***Hybrid Infrastructure:*** Combination of on-premises (MinIO, PostgreSQL) and AWS emulation via LocalStack
+ML Pipeline: End-to-end training and hosting of PyTorch models
 
-### HTML Generator
-A React/TypeScript-based frontend for HTML code generation featuring:
-- Interactive UI with drag-and-drop components
-- GraphQL API integration
-- PostgreSQL storage with Redis caching
-- ML-powered code generation model
-
-### SlAI The Spire
-A PyTorch-based game AI implementation including:
-- Game state analysis and decision making
-- User data storage in PostgreSQL
-- State caching with Redis
-- ML model storage using MinIO
+***Two Main Applications:***
+- HTML Generator: ML-powered code generation with React frontend
+- SlAI The Spire: Game AI with decision-making model
 
 ## Tech Stack
 
@@ -72,12 +64,6 @@ The project uses the following containers:
 - `vault`: Secrets management
 
 ## Development Setup
-
-### Prerequisites
-- Node.js 20+
-- Python 3.9+
-- PostgreSQL 16
-
 ### Getting Started
 1. Clone the repository
 2. Install dependencies:
@@ -166,6 +152,24 @@ Access the admin interface at `/admin` for:
 - ML model training controls
 - Infrastructure metrics
 
+
+## Applications
+
+### HTML Generator
+A React/TypeScript-based frontend for HTML code generation featuring:
+- Interactive UI with drag-and-drop components
+- GraphQL API integration
+- PostgreSQL storage with Redis caching
+- ML-powered code generation model
+
+### SlAI The Spire
+A PyTorch-based game AI implementation including:
+- Game state analysis and decision making
+- User data storage in PostgreSQL
+- State caching with Redis
+- ML model storage using MinIO
+
+## Architecture Diagram
 ```mermaid
 flowchart TD
     %% Infrastructure Diagram
@@ -175,46 +179,66 @@ flowchart TD
     classDef monitoring fill:#FFFF99,color:#000000,stroke:#CCCC66
     classDef cd fill:#FF99FF,color:#000000,stroke:#FF66FF
 
-    %% Core Components
-    subgraph OnPrem["On-Premises/Development Environment"]
-        A[MinIO]:::storage --> B[PostgreSQL]:::compute
-        C[Redis]:::compute --> D[GraphQL API]:::compute
-        E[Traefik]:::compute --> F[React Frontend]:::compute
-        E --> D
-        G[Kafka]:::compute --> H[ML Training]:::compute
-        I[Elastic SIEM]:::monitoring --> J[Grafana]:::monitoring
+    %% Frontend Layer
+    subgraph Frontend["Frontend Applications"]
+        F[React Frontend]:::compute
+        AB[HTML Generator]:::compute
+        AC[SlAI The Spire]:::compute
     end
 
-    %% AWS Services (LocalStack Emulation)
-    subgraph AWS["AWS Services (LocalStack Emulation)"]
-        K[API Gateway]:::compute --> D
-        L[EC2]:::compute --> F
-        M[Lambda]:::compute --> H
-        N[S3]:::storage --> A
-        O[Route53]:::compute --> E
-        P[IAM]:::security --> Q[ECR]:::compute
+    %% API Layer
+    subgraph API["API Layer"]
+        E[Traefik]:::compute --> D[GraphQL API]:::compute
+        E --> F
+        D --> AB
+        D --> AC
     end
 
-    %% Security Layer
-    subgraph Security["Security Components"]
-        R[Keycloak]:::security --> S[ACL]:::security
-        T[Calico]:::security --> U[Open vSwitch]:::security
-        V[ModSecurity]:::security --> E
-        W[Suricata]:::security --> I
+    %% Data Layer
+    subgraph Data["Data Services"]
+        B[PostgreSQL]:::storage
+        C[Redis]:::compute
+        A[MinIO]:::storage
+        ES[Elasticsearch]:::storage
+        D --> B
+        D --> C
+        D --> A
+        D --> ES
     end
 
-    %% CI/CD Pipeline
-    subgraph CD["CI/CD Pipeline"]
-        X[GitHub Actions]:::cd --> Y[ArgoCD]:::cd
-        Y --> Z[Podman/K8s]:::compute
-        X --> AA[Security Scan]:::cd
-    end
-
-    %% Applications
-    subgraph Apps["Applications"]
-        AB[HTML Generator]:::compute --> D
-        AC[SlAI The Spire]:::compute --> AD[PyTorch Model]:::compute
+    %% ML Services
+    subgraph ML["ML Services"]
+        H[ML Training]:::compute
+        AD[PyTorch Model]:::compute
+        H --> AD
         AD --> B
+        AD --> A
+    end
+
+    %% Monitoring
+    subgraph Monitoring["Monitoring Stack"]
+        J[Grafana]:::monitoring
+        P[Prometheus]:::monitoring
+        I[Elastic SIEM]:::monitoring
+        J --> P
+        P --> D
+        I --> ES
+    end
+
+    %% Security
+    subgraph Security["Security Components"]
+        R[Keycloak]:::security
+        V[ModSecurity]:::security
+        R --> D
+        V --> E
+    end
+
+    %% CI/CD
+    subgraph CD["CI/CD Pipeline"]
+        X[GitHub Actions]:::cd
+        Y[ArgoCD]:::cd
+        X --> Y
+        Y --> E
     end
 
     %% Styling
@@ -223,3 +247,4 @@ flowchart TD
     classDef security fill:#9999FF,color:#000000,stroke:#6666CC
     classDef monitoring fill:#FFFF99,color:#000000,stroke:#CCCC66
     classDef cd fill:#FF99FF,color:#000000,stroke:#FF66FF
+```
