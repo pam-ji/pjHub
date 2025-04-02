@@ -20,7 +20,12 @@
 - AWS EC2 instance with localstack for frontend
 - github actions 
 - pytorch
+- ratelimiter (aws api gateway or traefik)
+- oauth2 acl for certain subdomains and services via api gateway for training and private applications, or applications that are in development
+- Iam roles for admin for private services in aws
+- useraccounts for onprem and aws services
 - postgres 
+- cicd pipeline sand react router for fluid deploiments
 - redis
 - terraform and ansible iac deployements
 - gitOps with ArgoCd(multi workspace for 2. repo named pjHub_gitOps)
