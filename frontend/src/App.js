@@ -1,32 +1,35 @@
 
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import "./App.css";
-import { useState, useEffect, useMemo, useCallback, use } from "react";
-import { Animator } from "kooljs/animator"
-import { FontAnimation, start, stop } from "./main_animation"
-import {  Header } from "./utils"
-const animator = new Animator(50)
-function Font() {
-  var temp
-  useMemo(() => {
-     temp =  FontAnimation(animator)     
-    animator.init(true);
-    start()
-}, []);
-return temp
-}
+import Taskbar from './taskbar';
+import AdminDashboard from './components/AdminDashboard';
+import HtmlGenerator from '../apps/html_generator/src/App';
+import SlayTheSpire from '../apps/slay-the-spire/src/App';
+
+const client = new ApolloClient({
+  uri: '/graphql',
+  cache: new InMemoryCache(),
+});
+
 function App() {
- 
   return (
-    <div class="App  bg-[#242d36] w-full h-full flex   items-center justify-center  " style={{ width: window.innerWidth, height: window.innerHeight }}>
-     <div class=" w-[96%]  h-[96%] flex flex-col items-center justify-center rounded-md border-4  border-[#020202] ">
-      <div class=" w-full  h-[7%] " >
-        <Header />
-      </div>
-      <div class="flex  w-full h-[93%] bg-white   items-center justify-center">
-      <Font></Font>
+    <ApolloProvider client={client}>
+      <BrowserRouter>
+        <div className="App bg-[#242d36] min-h-screen">
+          <Taskbar />
+          <div className="container mx-auto p-4">
+            <Routes>
+              <Route path="/" element={<div>Welcome to PjHub</div>} />
+              <Route path="/html-generator" element={<HtmlGenerator />} />
+              <Route path="/slay-the-spire" element={<SlayTheSpire />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Routes>
+          </div>
         </div>
-      </div>
-    </div>
+      </BrowserRouter>
+    </ApolloProvider>
   );
 }
+
 export default App;

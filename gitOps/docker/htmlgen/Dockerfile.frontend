@@ -1,0 +1,11 @@
+
+FROM node:20-slim
+
+WORKDIR /app
+COPY apps/html_generator/package*.json ./
+RUN npm install
+COPY apps/html_generator .
+RUN npm run build
+
+EXPOSE 3000
+CMD ["npm", "start"]

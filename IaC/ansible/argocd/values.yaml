@@ -1,0 +1,18 @@
+
+server:
+  extraArgs:
+    - --insecure
+  config:
+    repositories: |
+      - type: git
+        url: https://github.com/yourusername/pjhub.git
+  ingress:
+    enabled: true
+    hosts:
+      - argocd.local.dev
+
+redis:
+  enabled: true
+
+applicationSet:
+  enabled: true

@@ -1,93 +1,119 @@
+# PjHub Infrastructure
 
-# infrastructure
-- ***apache iceberg with minio:*** https://blog.min.io/a-developers-introduction-to-apache-iceberg-using-minio/
-- docker compose
-- oauth2 provider for the enduser
-- aws with localstack
-- frontend with react
-- docker compose and localstack
-- minio for ai-storage
-- GraphQl and go as backend restFul Api
-- siem with Elasticstack
-- traefik as reverseproxy for local deployment and docker compose
-- grafana monitoring
-- gitops with argo
-- *AWS email* service
-- *AWS Route53* loadbalancer via localstack
-- *AWS S3* with localstack
-- *AWS Api Gateway* for restFul Api (GraphQL and redis) with localstack
-- *AWS EC2* instance with localstack for frontend
-- *AWS Elastic Container Registry* for fas container deployments 
-- *AWS LAmbda* - the deployments are for admins and private services. they are for development and they come with a python runtime and the most needed machine learnng tools like pytorch and tensorflow
-- AWS firewall and Cloudsecurity with Localstack - here are several options like AWS Network Firewall,AWS Security Groups, Shield, WAF,  Firewall Manager, AWS Network ACLs, AWS VPC Flow Logs
+## Applications
 
-- seperated buckets for frontend and backend
-- kafka with localstack
-- github actions for ci/cd including code analysis with checkov (add a github actions workflow)
-- awaiting code check and reviews
-- pytorch and ml frameworks deplplpoyed via containers in docker compose and aws lambda. ec2 instance with localstack for frontend
-- ratelimiter (aws api gateway or traefik)
-- oauth2 acl for certain subdomains and services via api gateway for training and private applications, or applications that are in development
-- Iam roles for admin for private services in aws
-- useraccounts for onprem and aws services
-- postgres 
-- cicd pipeline sand react router for fluid deploiments
-- redis caching
-- secrets via hashicorp vault
-- impementing the folder structure for the backend
-- OPTIONAL! WAF/Shield Alternative === ModSecurity (NGINX/Traefik Plugin) + Suricata (IDS)
-- OPTIONAL! AWS VPC/Networking alternative === Calico (Netzwerk-Policies) + Open vSwitch
-- terraform and ansible iac deployements
-- gitOps with ArgoCd(multi workspace for 2. repo named pjHub_gitOps)
-- training of multiple models for several applications like html generator, malarias self played game, self hosted deepseek r1 instance and several models from hugging face
-- dashboard for training in the frontend for admins
-- starting training and roll back via dashboard
-- start applications from the website
-postgres with redis and  
+### HTML Generator
+A React/TypeScript-based frontend for HTML code generation featuring:
+- Interactive UI with drag-and-drop components
+- GraphQL API integration
+- PostgreSQL storage with Redis caching
+- ML-powered code generation model
 
-## project Structure
+### SlAI The Spire
+A PyTorch-based game AI implementation including:
+- Game state analysis and decision making
+- User data storage in PostgreSQL
+- State caching with Redis
+- ML model storage using MinIO
+
+## Tech Stack
+
+### Backend Services
+- GraphQL API with TypeScript
+- PostgreSQL for persistent storage
+- Redis for caching
+- MinIO for object storage
+- LocalStack for AWS service emulation
+
+### Frontend
+- React with TypeScript
+- Tailwind CSS for styling
+- GraphQL client integration
+
+### Infrastructure
+- Traefik for reverse proxy
+- Grafana/Prometheus monitoring
+- Keycloak authentication
+- ModSecurity WAF
+
+## Development Setup
+
+### Prerequisites
+- Node.js 20+
+- Python 3.9+
+- PostgreSQL 16
+
+### Getting Started
+1. Clone the repository
+2. Install dependencies:
+```bash
+# Frontend dependencies
+cd frontend && npm install
+cd ../apps/html_generator && npm install
+
+# Backend dependencies
+cd ../../backend/graphql && npm install
+```
+
+3. Start services:
+```bash
+docker-compose -f gitOps/docker/docker-compose.yml up
+```
+
+### Available Workflows
+- **Terraform Deploy**: Deploy infrastructure components
+- **Generate Docs**: Generate architecture documentation
+- **Train Model**: Execute ML model training
+- **ArgoCD Deploy**: Deploy with ArgoCD
+- **AWS Deploy**: Deploy AWS resources
+
+### Development Commands
+```bash
+# Build HTML Generator
+./scripts/build_htmlgen.sh
+
+# Build SlAI The Spire
+./scripts/build_slaithespire.sh
+```
+
+## Project Structure
 ```
 PjHub
-|
-|-- apps
-|    |
-|    |-- html_generator
-|    |-- slay-the-spire
-|
-|-- docs
-|
-|-- backend
-|    |
-|    |-- go
-|    |-- postgres
-|    |-- redis
-|    |-- traefik
-|    |-- minio
-|
-|-- frontend
-|    |
-|    |-- public
-|    |-- src
-|
-|-- gitOps
-|    |
-|    |-- Argo
-|    |-- docker
-|    |    |
-|    |    |-- minio
-|    |    |-- redis
-|    |    |-- traefik
-|    |    |-- docker-compose.yml
-|
-|-- IaC
-|    |
-|    |-- ansible
-|    |-- terraform
-|    |-- aws
-|    |-- localstack
+├── apps/                  # Main applications
+│   ├── html_generator/    # HTML generation app
+│   └── slay-the-spire/   # Game AI project
+├── backend/              # Backend services
+│   └── graphql/         # GraphQL API
+├── frontend/            # Main frontend app
+├── gitOps/             # Infrastructure configs
+│   ├── docker/         # Container configs
+│   ├── grafana/        # Monitoring setup
+│   └── redis/          # Cache configs
+├── IaC/                # Infrastructure as Code
+│   ├── ansible/        # Configuration management
+│   └── terraform/      # Infrastructure specs
+└── scripts/            # Utility scripts
 ```
 
-## Infra Diagram
+## Monitoring
+Access Grafana dashboards at http://0.0.0.0:3000 for:
+- System metrics
+- Service health
+- Application performance
+- Infrastructure status
+
+## Local Development
+Start the development environment:
+```bash
+docker-compose -f gitOps/docker/docker-compose.yml up
+```
+
+## Admin Dashboard
+Access the admin interface at `/admin` for:
+- System monitoring
+- Cache management
+- ML model training controls
+- Infrastructure metrics
 
 ```mermaid
 flowchart TD
@@ -100,45 +126,44 @@ flowchart TD
 
     %% Core Components
     subgraph OnPrem["On-Premises/Development Environment"]
-        A[MinIO]:::storage --> B[Apollo Iceberg Tables]:::storage
-        C[PostgreSQL]:::compute --> B
-        D[Redis]:::compute --> E[Go Backend]:::compute
-        F[Traefik]:::compute --> G[React Frontend]:::compute
-        F --> E
-        H[Kafka]:::compute --> I[ML Training]:::compute
-        J[Elastic SIEM]:::monitoring --> K[Grafana]:::monitoring
+        A[MinIO]:::storage --> B[PostgreSQL]:::compute
+        C[Redis]:::compute --> D[GraphQL API]:::compute
+        E[Traefik]:::compute --> F[React Frontend]:::compute
+        E --> D
+        G[Kafka]:::compute --> H[ML Training]:::compute
+        I[Elastic SIEM]:::monitoring --> J[Grafana]:::monitoring
     end
 
-    %% AWS Services
+    %% AWS Services (LocalStack Emulation)
     subgraph AWS["AWS Services (LocalStack Emulation)"]
-        L[API Gateway]:::compute --> E
-        M[EC2]:::compute --> G
-        N[Lambda]:::compute --> I
-        O[S3]:::storage --> A
-        P[Route53]:::compute --> F
-        Q[IAM]:::security --> R[ECR]:::compute
+        K[API Gateway]:::compute --> D
+        L[EC2]:::compute --> F
+        M[Lambda]:::compute --> H
+        N[S3]:::storage --> A
+        O[Route53]:::compute --> E
+        P[IAM]:::security --> Q[ECR]:::compute
     end
 
     %% Security Layer
     subgraph Security["Security Components"]
-        S[Keycloak]:::security --> T[ACL]:::security
-        U[Calico]:::security --> V[Open vSwitch]:::security
-        W[ModSecurity]:::security --> F
-        X[Suricata]:::security --> J
+        R[Keycloak]:::security --> S[ACL]:::security
+        T[Calico]:::security --> U[Open vSwitch]:::security
+        V[ModSecurity]:::security --> E
+        W[Suricata]:::security --> I
     end
 
     %% CI/CD Pipeline
     subgraph CD["CI/CD Pipeline"]
-        Y[GitHub Actions]:::cd --> Z[ArgoCD]:::cd
-        Z --> AA[Podman/K8s]:::compute
-        Y --> AB[Security Scan]:::cd
+        X[GitHub Actions]:::cd --> Y[ArgoCD]:::cd
+        Y --> Z[Podman/K8s]:::compute
+        X --> AA[Security Scan]:::cd
     end
 
     %% Applications
     subgraph Apps["Applications"]
-        AC[Ji's HTML Generator]:::compute --> AD[GraphQL]:::compute
-        AE[Marlaria's SlAI]:::compute --> AF[PyTorch Model]:::compute
-        AF --> B
+        AB[HTML Generator]:::compute --> D
+        AC[SlAI The Spire]:::compute --> AD[PyTorch Model]:::compute
+        AD --> B
     end
 
     %% Styling
@@ -147,61 +172,3 @@ flowchart TD
     classDef security fill:#9999FF,color:#000000,stroke:#6666CC
     classDef monitoring fill:#FFFF99,color:#000000,stroke:#CCCC66
     classDef cd fill:#FF99FF,color:#000000,stroke:#FF66FF
-```
-
-# applications
-## ji's html generator and editor(/apps/html_generator)  
-- html generator with react and typescript
-- create a api endpoint or service for the model that can be called from the frontend
-. the model can use code + commands as input for the html code generation
-- GraphQl Api Endpoint
-- sql db entries with redis caching for the api calls
-
-## marlaria's slAI-the-spire (/apps/slay-the-spire)
-Maybe create an AI model trained on slay the spire content, after that feed it screenshots of someone playing and let the ai make all the descicions and see what it does 
-- create backend using postgres for the user 
-- redis for caching
-- datastorage for machne learning with minio 
-- training with pytorch and 
-- GraphQl Api Endpoint
-- sql db entries with redis caching for the api calls
-
-
-# Docs
-- create uml diagrams 
-- create documentation for the applications
-- create a api documentationns
-- create docs for the backend
-- create docs for the frontend
-- create docs for the GraphQl Api Endpoint with acl, ratelimiter, aws/traefik implementation
-- create docs for the sql db entries with redis caching for the api calls
-- create docs for the different ml snippets, models, frameworks and apis used in the applications and backend
-
-
-
-
-
-## example  for aws lambda python environment
-
-```python
-import boto3
-import torch
-import pandas as pd
-s3 = boto3.client('s3')
-def lambda_handler(event, context):
-    model_file = s3.get_object(Bucket='my-bucket', Key='my-model.pt')
-    model = torch.load(model_file['Body'])
-    data_file = s3.get_object(Bucket='my-bucket', Key='my-data.csv')
-    data = pd.read_csv(data_file['Body'])
-    predictions = model(data)
-    s3.put_object(Body=predictions, Bucket='my-bucket', Key='my-results.csv')
-    return {
-        'statusCode': 200,
-        'body': 'Results saved successfully!'
-    }
-```
-
-## forked by ji
-- archived malarias repo and moved to pjHub
-
-

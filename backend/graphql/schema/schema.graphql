@@ -1,0 +1,137 @@
+type User {
+  id: ID!
+  email: String!
+  name: String!
+}
+
+type PostgresStatus {
+  status: String!
+  connections: Int!
+  activeQueries: Int!
+}
+
+type RedisStatus {
+  status: String!
+  connectedClients: Int!
+  usedMemory: String!
+}
+
+type MinioStatus {
+  status: String!
+  buckets: Int!
+  totalSize: String!
+}
+
+type TraefikStatus {
+  status: String!
+  activeRoutes: Int!
+  healthChecks: [String!]!
+}
+
+type SystemStatus {
+  postgres: PostgresStatus!
+  redis: RedisStatus!
+  minio: MinioStatus!
+  traefik: TraefikStatus!
+}
+
+directive @cacheControl(
+  maxAge: Int
+  scope: CacheControlScope
+) on FIELD_DEFINITION | OBJECT | INTERFACE | UNION
+
+enum CacheControlScope {
+  PUBLIC
+  PRIVATE
+}
+
+type Query {
+  getUser(id: ID!): User @cacheControl(maxAge: 300)
+  getSystemStatus: SystemStatus! @cacheControl(maxAge: 60)
+  htmlTemplates: [Template!]!
+  gameStats: GameStats!
+}
+
+type Mutation {
+  createUser(email: String!, name: String!): User!
+  generateHTML(input: String!): String!
+  trainModel: Boolean!
+  makeGameDecision(gameState: String!): GameDecision!
+}
+
+type Template {
+  id: ID!
+  name: String!
+  content: String!
+  createdAt: String!
+}
+
+type GameStats {
+  id: ID!
+  modelVersion: String!
+  winRate: Float!
+  gamesPlayed: Int!
+  averageScore: Float!
+}
+
+type GameDecision {
+  action: String!
+  confidence: Float!
+}
+
+type MLModel {
+  id: ID!
+  name: String!
+  type: String!
+  status: String!
+  version: String
+  metrics: ModelMetrics
+  lastTrained: String
+}
+
+type ModelMetrics {
+  accuracy: Float
+  loss: Float
+  epochsCompleted: Int
+  trainingTime: Int
+}
+
+type TrainingJob {
+  id: ID!
+  modelId: ID!
+  status: String!
+  progress: Float
+  startTime: String!
+  endTime: String
+  metrics: ModelMetrics
+}
+
+input StartTrainingInput {
+  modelId: ID!
+  hyperparameters: JSON
+}
+
+extend type Query {
+  models: [MLModel!]!
+  trainingJobs: [TrainingJob!]!
+  modelVersions(modelId: ID!): [String!]!
+}
+
+extend type Mutation {
+  startTraining(input: StartTrainingInput!): TrainingJob!
+  stopTraining(jobId: ID!): Boolean!
+  rollbackModel(modelId: ID!, version: String!): Boolean!
+}
+
+type SystemStatus {
+  postgres: ServiceStatus!
+  redis: ServiceStatus!
+  minio: ServiceStatus!
+}
+
+type ServiceStatus {
+  status: String!
+  connections: Int
+  connectedClients: Int
+  buckets: [String]
+}
