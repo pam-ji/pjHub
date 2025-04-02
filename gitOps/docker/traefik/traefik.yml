@@ -1,30 +1,49 @@
+
 log:
   level: DEBUG
 
 api:
   dashboard: true
 
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    entryPoint: metrics
+
+entryPoints:
+  web:
+    address: ":80"
+  metrics:
+    address: ":8082"
+
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
 
-entryPoints:
-  web:
-    address: ":80"
-
 routes:
   api:
     rule: "PathPrefix(`/api`)"
     service: api
+    middlewares:
+      - metrics
 
   graql-restful:
     rule: "PathPrefix(`/graql`)"
     service: graql-restful
+    middlewares:
+      - metrics
 
   pytorch:
     rule: "PathPrefix(`/pytorch`)"
     service: pytorch
+    middlewares:
+      - metrics
+
+middlewares:
+  metrics:
+    metrics: {}
 
 services:
   api:
