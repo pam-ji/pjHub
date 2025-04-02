@@ -44,37 +44,47 @@
 - start applications from the website
 postgres with redis and  
 
-# applications
-## ji's html generator and editor(/apps/html_generator)  
-- html generator with react and typescript
-- create a api endpoint or service for the model that can be called from the frontend
-. the model can use code + commands as input for the html code generation
-- GraphQl Api Endpoint
-- sql db entries with redis caching for the api calls
-
-## marlaria's slAI-the-spire (/apps/slay-the-spire)
-Maybe create an AI model trained on slay the spire content, after that feed it screenshots of someone playing and let the ai make all the descicions and see what it does 
-- create backend using postgres for the user 
-- redis for caching
-- datastorage for machne learning with minio 
-- training with pytorch and 
-- GraphQl Api Endpoint
-- sql db entries with redis caching for the api calls
-
-
-# Docs
-- create uml diagrams 
-- create documentation for the applications
-- create a api documentationns
-- create docs for the backend
-- create docs for the frontend
-- create docs for the GraphQl Api Endpoint with acl, ratelimiter, aws/traefik implementation
-- create docs for the sql db entries with redis caching for the api calls
-- create docs for the different ml snippets, models, frameworks and apis used in the applications and backend
-
-
-
-
+## project Structure
+```
+PjHub
+|
+|-- apps
+|    |
+|    |-- html_generator
+|    |-- slay-the-spire
+|
+|-- docs
+|
+|-- backend
+|    |
+|    |-- go
+|    |-- postgres
+|    |-- redis
+|    |-- traefik
+|    |-- minio
+|
+|-- frontend
+|    |
+|    |-- public
+|    |-- src
+|
+|-- gitOps
+|    |
+|    |-- Argo
+|    |-- docker
+|    |    |
+|    |    |-- minio
+|    |    |-- redis
+|    |    |-- traefik
+|    |    |-- docker-compose.yml
+|
+|-- IaC
+|    |
+|    |-- ansible
+|    |-- terraform
+|    |-- aws
+|    |-- localstack
+```
 
 ## Infra Diagram
 
@@ -137,6 +147,39 @@ flowchart TD
     classDef monitoring fill:#FFFF99,color:#000000,stroke:#CCCC66
     classDef cd fill:#FF99FF,color:#000000,stroke:#FF66FF
 ```
+
+# applications
+## ji's html generator and editor(/apps/html_generator)  
+- html generator with react and typescript
+- create a api endpoint or service for the model that can be called from the frontend
+. the model can use code + commands as input for the html code generation
+- GraphQl Api Endpoint
+- sql db entries with redis caching for the api calls
+
+## marlaria's slAI-the-spire (/apps/slay-the-spire)
+Maybe create an AI model trained on slay the spire content, after that feed it screenshots of someone playing and let the ai make all the descicions and see what it does 
+- create backend using postgres for the user 
+- redis for caching
+- datastorage for machne learning with minio 
+- training with pytorch and 
+- GraphQl Api Endpoint
+- sql db entries with redis caching for the api calls
+
+
+# Docs
+- create uml diagrams 
+- create documentation for the applications
+- create a api documentationns
+- create docs for the backend
+- create docs for the frontend
+- create docs for the GraphQl Api Endpoint with acl, ratelimiter, aws/traefik implementation
+- create docs for the sql db entries with redis caching for the api calls
+- create docs for the different ml snippets, models, frameworks and apis used in the applications and backend
+
+
+
+
+
 ## example  for aws lambda python environment
 
 ```python
@@ -158,6 +201,6 @@ def lambda_handler(event, context):
 ```
 
 ## forked by ji
-- will get moved to pamji hub 
+- archived malarias repo and moved to pjHub
 
 
