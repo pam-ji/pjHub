@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  redis:
+    ports:
+      - "6380:6379"
+
+  minio:
+    environment:
+      - MINIO_ACCESS_KEY=my_local_access_key
+      - MINIO_SECRET_KEY=my_local_secret_key
+
+  graql-restful:
+    ports:
+      - "8082:8080"
+
+  pytorch:
+    environment:
+      - PYTORCH_PORT=8001

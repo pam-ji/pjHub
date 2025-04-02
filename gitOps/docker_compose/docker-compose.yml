@@ -1,0 +1,91 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/data
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./minio-data:/data
+    environment:
+      - MINIO_ACCESS_KEY=your_access_key
+      - MINIO_SECRET_KEY=your_secret_key
+
+  graql-restful:
+    image: your-graql-restful-image:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - GRAQL_RESTFUL_PORT=8080
+      - GRAQL_RESTFUL_HOST=0.0.0.0
+
+  traefik:
+    image: traefik:v2.4
+    ports:
+      - "80:80"
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --configFile=/etc/traefik/traefik.yml
+
+  security:
+    image: your-security-image:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - SECURITY_PORT=5000
+      - SECURITY_HOST=0.0.0.0
+
+  elastic:
+    image: elastic/elasticsearch:7.10.2
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./elastic-data:/usr/share/elasticsearch/data
+
+  suricata:
+    image: your-suricata-image:latest
+    ports:
+      - "514:514"
+    environment:
+      - SURICATA_PORT=514
+      - SURICATA_HOST=0.0.0.0
+
+  postgres:
+    image: postgres:13.4
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=your_username
+      - POSTGRES_PASSWORD=your_password
+      - POSTGRES_DB=your_database
+
+  pytorch:
+    image: your-pytorch-image:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTORCH_PORT=8000
+      - PYTORCH_HOST=0.0.0.0
+    depends_on:
+      - graql-restful
+
+  api:
+    image: your-api-image:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - API_PORT=8081
+      - API_HOST=0.0.0.0
+    depends_on:
+      - pytorch
+      - graql-restful

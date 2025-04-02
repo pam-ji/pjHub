@@ -1,0 +1,43 @@
+log:
+  level: DEBUG
+
+api:
+  dashboard: true
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+
+entryPoints:
+  web:
+    address: ":80"
+
+routes:
+  api:
+    rule: "PathPrefix(`/api`)"
+    service: api
+
+  graql-restful:
+    rule: "PathPrefix(`/graql`)"
+    service: graql-restful
+
+  pytorch:
+    rule: "PathPrefix(`/pytorch`)"
+    service: pytorch
+
+services:
+  api:
+    loadBalancer:
+      servers:
+        - url: "http://api:8081"
+
+  graql-restful:
+    loadBalancer:
+      servers:
+        - url: "http://graql-restful:8080"
+
+  pytorch:
+    loadBalancer:
+      servers:
+        - url: "http://pytorch:8000"
