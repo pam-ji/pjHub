@@ -19,22 +19,57 @@ A PyTorch-based game AI implementation including:
 ## Tech Stack
 
 ### Backend Services
-- GraphQL API with TypeScript
-- PostgreSQL for persistent storage
-- Redis for caching
-- MinIO for object storage
+- GraphQL API with TypeScript & Apollo Server
+- PostgreSQL 16 for persistent storage
+- Redis 7 for caching and session management
+- MinIO S3-compatible object storage
 - LocalStack for AWS service emulation
+- Elasticsearch 8.11 for logging and search
+- PyTorch for ML model training and inference
 
 ### Frontend
-- React with TypeScript
+- React 18 with TypeScript
 - Tailwind CSS for styling
-- GraphQL client integration
+- Apollo Client for GraphQL integration
+- Vite for build tooling
+- React Router for navigation
+
+### Infrastructure & Monitoring
+- Traefik 2.4 for reverse proxy and load balancing
+- Grafana/Prometheus for metrics and monitoring
+- OpenTelemetry for distributed tracing
+- Keycloak for authentication and authorization
+- ModSecurity WAF for security
+- ArgoCD for GitOps deployments
+- Terraform for infrastructure provisioning
+
+## Container Services
+
+The project uses the following containers:
+
+### Core Services
+- `htmlgen-frontend`: HTML Generator React frontend
+- `htmlgen-api`: HTML Generator GraphQL API
+- `slaithespire-ml`: ML model training service
+- `slaithespire-api`: Game AI API service
+- `graphql-api`: Main GraphQL API gateway
+
+### Data Storage
+- `postgres`: PostgreSQL database (v16)
+- `redis`: Redis cache server
+- `minio`: MinIO object storage
+- `elasticsearch`: Elasticsearch server
 
 ### Infrastructure
-- Traefik for reverse proxy
-- Grafana/Prometheus monitoring
-- Keycloak authentication
-- ModSecurity WAF
+- `traefik`: Traefik reverse proxy
+- `grafana`: Metrics visualization
+- `prometheus`: Metrics collection
+- `localstack`: AWS services emulation
+- `keycloak`: Authentication server
+
+### Development Tools
+- `argocd`: GitOps deployment tool
+- `vault`: Secrets management
 
 ## Development Setup
 
