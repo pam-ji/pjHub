@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  localstack:version: '3'
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./localstack:/tmp/localstack
+    environment:
+      - SERVICES=s3,iam,sts

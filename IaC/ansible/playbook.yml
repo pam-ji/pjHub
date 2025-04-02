@@ -1,0 +1,21 @@
+---
+- name: Deploy application
+  hosts: local
+  become: yes
+
+  tasks:
+  - name: Start containers
+    docker_compose:
+      project_src: .
+      up: yes
+
+  - name: Wait for containers to start
+    uri:
+      url: http://localhost:8080
+      status: 200
+
+  - name: Deploy frontend
+    copy:
+      content: "{{ lookup('file', 'frontend/index.html') }}"
+      dest: /var/www/frontend/index.html
+      mode: '0644'

@@ -33,6 +33,7 @@
 - postgres 
 - cicd pipeline sand react router for fluid deploiments
 - redis caching
+- secrets via hashicorp vault
 
 - OPTIONAL! WAF/Shield Alternative === ModSecurity (NGINX/Traefik Plugin) + Suricata (IDS)
 - OPTIONAL! AWS VPC/Networking alternative === Calico (Netzwerk-Policies) + Open vSwitch

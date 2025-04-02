@@ -1,0 +1,6 @@
+FROM minio/minio:latest
+
+ENV MINIO_ACCESS_KEY your_access_key
+ENV MINIO_SECRET_KEY your_secret_key
+
+COPY minio-data /data
