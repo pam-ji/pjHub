@@ -4,6 +4,69 @@ networks:
     driver: bridge
 
 services:
+  #redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+  #   sysctls:
+  #     - vm.overcommit_memory=1
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+  postgres:
+    image: postgres:13
+    restart: always
+    shm_size: 128mb
+    privileged: true
+    environment:
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "POSTGRES_PASSWORD"
+      POSTGRES_DB: "POSTGRES_DB"
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      #POSTGRES_INITDB_WALDIR: "/var/lib/postgresql/db"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    ports:
+      - "5432:5432"
+    volumes: ./data:/var/lib/postgresql/db
+    #user:  "1000:1000"
+  # minio:
+  #   image: minio/minio:latest
+  #   ports:
+  #     - "9000:9000"
+  #   environment:
+  #     MINIO_ROOT_USER: minio
+  #     MINIO_ROOT_PASSWORD: minio123
+  #   command: server /data
+  #   volumes:
+  #     - ./minio/data:/data
+  #   user: "1000:1000"
+  #   depends_on:
+  #     - postgres
+
+  # forgejo:
+  #   image: mstreicherde/forgejo
+  #   ports:
+  #     - "2000:2000"
+  #     - "9022:22"
+  #   environment:
+  #     - USER=git
+  #     - USER_UID=1000
+  #     - USER_GID=1000
+  #     - FORGEJO__server__SSH_LISTEN_PORT=22
+  #     - FORGEJO__server__SSH_PORT=9022
+  #   restart: always
+  #   volumes:
+  #     - ./forgejo/data:/data
+  #     - ./forgejo/config:/etc/forgejo
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - app-network
+
   # graphql-api:
   #   build: 
   #     context: .
@@ -14,59 +77,7 @@ services:
   #     - POSTGRES_HOST=postgres
   #   ports:
   #     - "5000:5000"
-
-  
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-
-  postgres:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./postgres/data:/var/lib/postgresql/data
-
-  minio:
-    image: minio/minio:latest
-    ports:
-      - "9000:9000"
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
-    command: server /data
-    volumes:
-      - ./minio/data:/data
-    depends_on:
-      - postgres
-  forgejo:
-    image: mstreicherde/forgejo
-    ports:
-      - "2000:2000"
-      - "9022:22"
-    environment:
-      - USER=git
-      - USER_UID=1000
-      - USER_GID=1000
-      - FORGEJO__server__SSH_LISTEN_PORT=22
-      - FORGEJO__server__SSH_PORT=9022
-    restart: always
-    volumes:
-      - ./forgejo/data:/data
-      - ./forgejo/config:/etc/forgejo
-        # - /home/git:/srv/git
-    depends_on:
-      - postgres
-    networks:
-      - app-network
-
+  #
   # htmlgen-frontend:
   #   build:
   #     context: ../../frontend
@@ -77,193 +88,172 @@ services:
   #     - API_URL=http://htmlgen-api:5000
   #     - REDIS_HOST=redis
   #     - POSTGRES_HOST=postgres
-
-#   htmlgen-api:
-#     image: localhost:3001/pjhub/htmlgen-api:latest
-#     ports:
-#       - "5000:5000"
-#     environment:
-#       - REDIS_HOST=redis
-#       - POSTGRES_HOST=postgres
-#     depends_on:
-#       - redis
-#       - postgres
-#       - forgejo
-
-#   slaithespire-ml:
-#     build:
-#       context: .
-#       dockerfile: slaithespire/Dockerfile.ml
-#     volumes:
-#       - ./data:/data
-#     environment:
-#       - MINIO_HOST=minio
-#       - REDIS_HOST=redis
-
-#   slaithespire-api:
-#     build:
-#       context: .
-#       dockerfile: slaithespire/Dockerfile.api
-#     ports:
-#       - "5001:5000"
-#     environment:
-#       - ML_HOST=slaithespire-ml
-#       - REDIS_HOST=redis
-#       - POSTGRES_HOST=postgres
-#     depends_on:
-#       - slaithespire-ml
-#       - redis
-#       - postgres
-
-#   localstack:
-#     image: localstack/localstack:latest
-#     ports:
-#       - "4566:4566"
-#     environment:
-#       - SERVICES=s3,lambda,apigateway,route53,ec2,ecr,ses
-#       - DEBUG=1
-
-#   graphql-api:
-#     build: 
-#       context: .
-#       dockerfile: graphQl/Dockerfile.graphQl
-#     environment:
-#       - AWS_ENDPOINT=http://localstack:4566
-#       - REDIS_HOST=redis
-#       - POSTGRES_HOST=postgres
-#     ports:
-#       - "5000:5000"
-
-#   redis:
-#     image: redis:alpine
-#     ports:
-#       - "6379:6379"
-#     volumes:
-#       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-
-#   postgres:
-#     image: postgres:13
-#     environment:
-#       POSTGRES_USER: ${POSTGRES_USER}
-#       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-#       POSTGRES_DB: ${POSTGRES_DB}
-#     ports:
-#       - "5432:5432"
-#     volumes:
-#       - ./postgres/data:/var/lib/postgresql/data
-
-#   traefik:
-#     image: traefik:v2.4
-#     command:
-#       - "--api.insecure=true"
-#       - "--providers.docker=true"
-#     ports:
-#       - "80:80"
-#       - "8080:8080"
-#     volumes:
-#       - /var/run/docker.sock:/var/run/docker.sock
-
-#   minio:
-#     image: minio/minio:latest
-#     ports:
-#       - "9000:9000"
-#     environment:
-#       MINIO_ROOT_USER: minio
-#       MINIO_ROOT_PASSWORD: minio123
-#     command: server /data
-#     volumes:
-#       - ./minio/data:/data
-
-#   grafana:
-#     build:
-#       context: .
-#       dockerfile:  /grafana/Dockerfile
-#     ports:
-#       - "3000:3000"
-#     environment:
-#       - GF_SECURITY_ADMIN_PASSWORD=admin
-#       - GF_SECURITY_ADMIN_USER=admin
-#       - GF_SERVER_HTTP_PORT=3000
-#     networks:
-#       - app-network
-#     depends_on:
-#       - prometheus
-
-#   prometheus:
-#     image: prom/prometheus:latest
-#     ports:
-#       - "9090:9090"
-#     volumes:
-#       - ./prometheus:/etc/prometheus
-#     command:
-#       - '--config.file=/etc/prometheus/prometheus.yml'
-
-#   vault:
-#     image: vault:latest
-#     ports:
-#       - "8200:8200"
-#     environment:
-#       VAULT_DEV_ROOT_TOKEN_ID: root
-
-#   security:
-#     image: your-security-image:latest
-#     ports:
-#       - "5000:5000"
-#     environment:
-#       - SECURITY_PORT=5000
-#       - SECURITY_HOST=0.0.0.0
-
-#   suricata:
-#     image: your-suricata-image:latest
-#     ports:
-#       - "514:514"
-#     environment:
-#       - SURICATA_PORT=514
-#       - SURICATA_HOST=0.0.0.0
-
-#   elasticsearch:
-#     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
-#     environment:
-#       - discovery.type=single-node
-#       - xpack.security.enabled=false
-#       - ES_JAVA_OPTS=-Xms512m -Xmx512m
-#       - cluster.name=pjhub-cluster
-#       - node.name=pjhub-node
-#       - bootstrap.memory_lock=true
-#     ports:
-#       - "9200:9200"
-#       - "9300:9300"
-#     volumes:
-#       - ./elasticsearch/data:/usr/share/elasticsearch/data
-#     ulimits:
-#       memlock:
-#         soft: -1
-#         hard: -1
-#     networks:
-#       - app-network
-
-#   pytorch:
-#     image: your-pytorch-image:latest
-#     ports:
-#       - "8000:8000"
-#     environment:
-#       - PYTORCH_PORT=8000
-#       - PYTORCH_HOST=0.0.0.0
-#     depends_on:
-#       - graphql-api
-#     networks:
-#       - app-network
-
-
-
-
-#   api:
-#     image: your-api-image:latest
-#     ports:
-#       - "8081:8081"
-#     environment:
-#       - API_PORT=8081
-#       - API_HOST=0.0.0.0
-#     depends_on:
-#       - pytorch
-#       - graphql-api
+  #
+  # htmlgen-api:
+  #     image: localhost:3001/pjhub/htmlgen-api:latest
+  #     ports:
+  #       - "5000:5000"
+  #     environment:
+  #       - REDIS_HOST=redis
+  #       - POSTGRES_HOST=postgres
+  #     depends_on:
+  #       - redis
+  #       - postgres
+  #       - forgejo
+  #
+  # slaithespire-ml:
+  #     build:
+  #       context: .
+  #       dockerfile: slaithespire/Dockerfile.ml
+  #     volumes:
+  #       - ./data:/data
+  #     environment:
+  #       - MINIO_HOST=minio
+  #       - REDIS_HOST=redis
+  #
+  # slaithespire-api:
+  #     build:
+  #       context: .
+  #       dockerfile: slaithespire/Dockerfile.api
+  #     ports:
+  #       - "5001:5000"
+  #     environment:
+  #       - ML_HOST=slaithespire-ml
+  #       - REDIS_HOST=redis
+  #       - POSTGRES_HOST=postgres
+  #     depends_on:
+  #       - slaithespire-ml
+  #       - redis
+  #       - postgres
+  #
+  # localstack:
+  #     image: localstack/localstack:latest
+  #     ports:
+  #       - "4566:4566"
+  #     environment:
+  #       - SERVICES=s3,lambda,apigateway,route53,ec2,ecr,ses
+  #       - DEBUG=1
+  #
+  # graphql-api:
+  #     build: 
+  #       context: .
+  #       dockerfile: graphQl/Dockerfile.graphQl
+  #     environment:
+  #       - AWS_ENDPOINT=http://localstack:4566
+  #       - REDIS_HOST=redis
+  #       - POSTGRES_HOST=postgres
+  #     ports:
+  #       - "5000:5000"
+  #
+  # traefik:
+  #     image: traefik:v2.4
+  #     command:
+  #       - "--api.insecure=true"
+  #       - "--providers.docker=true"
+  #     ports:
+  #       - "80:80"
+  #       - "8080:8080"
+  #     volumes:
+  #       - /var/run/docker.sock:/var/run/docker.sock
+  #
+  # minio:
+  #     image: minio/minio:latest
+  #     ports:
+  #       - "9000:9000"
+  #     environment:
+  #       MINIO_ROOT_USER: minio
+  #       MINIO_ROOT_PASSWORD: minio123
+  #     command: server /data
+  #     volumes:
+  #       - ./minio/data:/data
+  #
+  # grafana:
+  #     build:
+  #       context: .
+  #       dockerfile:  /grafana/Dockerfile
+  #     ports:
+  #       - "3000:3000"
+  #     environment:
+  #       - GF_SECURITY_ADMIN_PASSWORD=admin
+  #       - GF_SECURITY_ADMIN_USER=admin
+  #       - GF_SERVER_HTTP_PORT=3000
+  #     networks:
+  #       - app-network
+  #     depends_on:
+  #       - prometheus
+  #
+  # prometheus:
+  #     image: prom/prometheus:latest
+  #     ports:
+  #       - "9090:9090"
+  #     volumes:
+  #       - ./prometheus:/etc/prometheus
+  #     command:
+  #       - '--config.file=/etc/prometheus/prometheus.yml'
+  #
+  # vault:
+  #     image: vault:latest
+  #     ports:
+  #       - "8200:8200"
+  #     environment:
+  #       VAULT_DEV_ROOT_TOKEN_ID: root
+  #
+  # security:
+  #     image: your-security-image:latest
+  #     ports:
+  #       - "5000:5000"
+  #     environment:
+  #       - SECURITY_PORT=5000
+  #       - SECURITY_HOST=0.0.0.0
+  #
+  # suricata:
+  #     image: your-suricata-image:latest
+  #     ports:
+  #       - "514:514"
+  #     environment:
+  #       - SURICATA_PORT=514
+  #       - SURICATA_HOST=0.0.0.0
+  #
+  # elasticsearch:
+  #     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+  #     environment:
+  #       - discovery.type=single-node
+  #       - xpack.security.enabled=false
+  #       - ES_JAVA_OPTS=-Xms512m -Xmx512m
+  #       - cluster.name=pjhub-cluster
+  #       - node.name=pjhub-node
+  #       - bootstrap.memory_lock=true
+  #     ports:
+  #       - "9200:9200"
+  #       - "9300:9300"
+  #     volumes:
+  #       - ./elasticsearch/data:/usr/share/elasticsearch/data
+  #     ulimits:
+  #       memlock:
+  #         soft: -1
+  #         hard: -1
+  #     networks:
+  #       - app-network
+  #
+  # pytorch:
+  #     image: your-pytorch-image:latest
+  #     ports:
+  #       - "8000:8000"
+  #     environment:
+  #       - PYTORCH_PORT=8000
+  #       - PYTORCH_HOST=0.0.0.0
+  #     depends_on:
+  #       - graphql-api
+  #     networks:
+  #       - app-network
+  #
+  # api:
+  #     image: your-api-image:latest
+  #     ports:
+  #       - "8081:8081"
+  #     environment:
+  #       - API_PORT=8081
+  #       - API_HOST=0.0.0.0
+  #     depends_on:
+  #       - pytorch
+  #       - graphql-api
