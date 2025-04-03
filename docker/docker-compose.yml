@@ -26,16 +26,16 @@ services:
     - "8443:8443"
     - "19000:19000"
 
-  graphql-api:
-    build: 
-      context: .
-      dockerfile: graphQl/Dockerfile.graphQl
-    environment:
-      - AWS_ENDPOINT=http://localstack:4566
-      - REDIS_HOST=redis
-      - POSTGRES_HOST=postgres
-    ports:
-      - "5000:5000"
+  # graphql-api:
+  #   build: 
+  #     context: .
+  #     dockerfile: ./graphQl/Dockerfile.graphQl
+  #   # environment:
+  #   #   - AWS_ENDPOINT=http://localstack:4566
+  #   #   - REDIS_HOST=redis
+  #   #   - POSTGRES_HOST=postgres
+  #   ports:
+  #     - "5000:5000"
   postgresql:
       image: postgres:15.4
       hostname: postgresql
@@ -98,7 +98,7 @@ services:
       - ./forgejo/data:/data
       - ./forgejo/config:/etc/forgejo
     depends_on:
-      - postgres
+      - postgresql
 
   prometheus:
       image: prom/prometheus
@@ -123,12 +123,17 @@ services:
   grafana:
       image: grafana/grafana
       container_name: grafana
+      volumes:
+      - grafana:/var/lib/grafana
+      - ./grafana/grafana.ini:/etc/grafana.ini
+      - ./grafana/datasource.yml:/etc/provisioning/datasources/datasource.yaml
+      - ./grafana/dashboard.json:/usr/share/public/dashboards/home.json
       privileged: true
       environment:
           GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
           GF_USERS_ALLOW_SIGN_UP: false
-      volumes:
-          - grafana:/var/lib/grafana
+      # volumes:
+      #     - grafana:/var/lib/grafana
       ports:
           - "${GRAFANA_PORT:-3000}:3000"
       restart: unless-stopped
@@ -205,16 +210,16 @@ services:
       restart: unless-stopped
       networks:
           - network1
-  htmlgen-frontend:
-    build:
-      context: ../../frontend
-      dockerfile: ./htmlgen/Dockerfile.frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - API_URL=http://htmlgen-api:5000
-      - REDIS_HOST=redis
-      - POSTGRES_HOST=postgres
+  # htmlgen-frontend:
+  #   build:
+  #     context: ../../frontend
+  #     dockerfile: ./htmlgen/Dockerfile.frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - API_URL=http://htmlgen-api:5000
+  #     - REDIS_HOST=redis
+  #     - POSTGRES_HOST=postgres
   #
   # htmlgen-api:
   #     image: localhost:3001/pjhub/htmlgen-api:latest
