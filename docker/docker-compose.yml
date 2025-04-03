@@ -10,6 +10,7 @@ volumes:
     prometheus:
     grafana:
 services:
+# ---------- >> ENVOY << ----------
   envoy:
     privileged: true
     image: envoyproxy/envoy:v1.20-latest
@@ -25,7 +26,7 @@ services:
     - "8000:8000"
     - "8443:8443"
     - "19000:19000"
-
+# ---------- >> GRAPHQL << ----------
   # graphql-api:
   #   build: 
   #     context: .
@@ -36,17 +37,17 @@ services:
   #   #   - POSTGRES_HOST=postgres
   #   ports:
   #     - "5000:5000"
+# ---------- >> POSTGRES << ----------
   postgresql:
       image: postgres:15.4
       hostname: postgresql
       container_name: postgresql
+      privileged: true
       environment:
           POSTGRES_USER: ${DB_USERNAME}
           POSTGRES_PASSWORD: ${DB_PASSWORD}
           POSTGRES_DB: ${DB_NAME}
           PGDATA: /data/postgres
-          privileged: true
-
           TZ: Asia/Tehran
       healthcheck:
           test: ["CMD-SHELL", "pg_isready -d ${DB_NAME} -U ${DB_USERNAME}"]
@@ -61,7 +62,7 @@ services:
       networks:
         network1:
           ipv4_address: 200.0.0.4
-      
+# ---------- >> REDIS << ----------      
   redis:
     image: redis:latest
     privileged: true
@@ -78,7 +79,7 @@ services:
     networks:
       network1:
         ipv4_address: 200.0.0.5
-
+# ---------- >> FORGEJO << ----------
   forgejo:
     image: mstreicherde/forgejo
     networks:
@@ -99,7 +100,7 @@ services:
       - ./forgejo/config:/etc/forgejo
     depends_on:
       - postgresql
-
+# ---------- >> PROMETHEUS << ----------
   prometheus:
       image: prom/prometheus
       hostname: prom
@@ -119,7 +120,7 @@ services:
       networks:
         network1:
           ipv4_address: 200.0.0.10
-
+# ---------- >> GRAFANA << ----------
   grafana:
       image: grafana/grafana
       container_name: grafana
@@ -140,7 +141,7 @@ services:
       networks:
         network1:
           ipv4_address: 200.0.0.11
-
+# ---------- >> ADMINER << ----------
   adminer:
     image: adminer
     restart: always
@@ -149,51 +150,48 @@ services:
     networks:
       network1:
         ipv4_address: 200.0.0.12
-     
-
-
-  # datanode:
-    # image: apache/ozone:latest
-    # ports:
-        # - 9864
-    # command: ["ozone","datanode"]
-    # env_file:
-        # - ./ozone/ozone.env
-  # om:
-    # image: apache/ozone:latest
-    # ports:
-        # - 9874:9874
-    # environment:
-        # ENSURE_OM_INITIALIZED: /data/metadata/om/current/VERSION
-        # WAITFOR: scm:9876
-    # env_file:
-        # - ./ozone/ozone.env
-    # command: ["ozone","om"]
-  # scm:
-    # image: apache/ozone:latest
-    # ports:
-        # - 9876:9876
-    # env_file:
-        # - ./ozone/ozone.env
-    # environment:
-        # ENSURE_SCM_INITIALIZED: /data/metadata/scm/current/VERSION
-    # command: ["ozone","scm"]
-  # recon:
-    # image: apache/ozone:latest
-    # ports:
-        # - 9888:9888
-    # env_file:
-        # - ./ozone/ozone.env
-    # command: ["ozone","recon"]
-  # s3g:
-    # image: apache/ozone:latest
-    # ports:
-        # - 9878:9878
-    # env_file:
-        # - ./ozone/ozone.env
-    # command: ["ozone","s3g"]
-#  
-# 
+# ---------- >> OZONE << ----------
+  datanode:
+    image: apache/ozone:latest
+    ports:
+        - 9864
+    command: ["ozone","datanode"]
+    env_file:
+        - ./ozone/ozone.env
+  om:
+    image: apache/ozone:latest
+    ports:
+        - 9874:9874
+    environment:
+        ENSURE_OM_INITIALIZED: /data/metadata/om/current/VERSION
+        WAITFOR: scm:9876
+    env_file:
+        - ./ozone/ozone.env
+    command: ["ozone","om"]
+  scm:
+    image: apache/ozone:latest
+    ports:
+        - 9876:9876
+    env_file:
+        - ./ozone/ozone.env
+    environment:
+        ENSURE_SCM_INITIALIZED: /data/metadata/scm/current/VERSION
+    command: ["ozone","scm"]
+  recon:
+    image: apache/ozone:latest
+    ports:
+        - 9888:9888
+    env_file:
+        - ./ozone/ozone.env
+    command: ["ozone","recon"]
+  s3g:
+    image: apache/ozone:latest
+    ports:
+        - 9878:9878
+    env_file:
+        - ./ozone/ozone.env
+    command: ["ozone","s3g"]
+# ---------- >> EXPORTERS << ----------
   postgresql-exporter:
       image: prometheuscommunity/postgres-exporter
       container_name: postgresql-exporter
