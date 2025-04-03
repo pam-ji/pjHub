@@ -78,7 +78,7 @@ cd ../../backend/graphql && npm install
 
 3. Start services:
 ```bash
-docker-compose -f gitOps/docker/docker-compose.yml up
+docker-compose -f docker/docker-compose.yml up
 ```
 
 ### Available Workflows
@@ -118,7 +118,7 @@ PjHub
 ├── frontend/                   # Main frontend app
 │   ├── public/                # Static assets
 │   └── src/                   # Source code
-├── gitOps/                    # Infrastructure configs
+├──                     # Infrastructure configs
 │   ├── docker/                # Container configurations
 │   ├── grafana/               # Monitoring & dashboards
 │   ├── postgres/              # Database configs
@@ -142,7 +142,7 @@ Access Grafana dashboards at http://0.0.0.0:3000 for:
 ## Local Development
 Start the development environment:
 ```bash
-docker-compose -f gitOps/docker/docker-compose.yml up
+docker-compose -f docker/docker-compose.yml up
 ```
 
 ## Admin Dashboard

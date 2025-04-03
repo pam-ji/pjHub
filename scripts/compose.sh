@@ -1,5 +1,5 @@
 sh scripts/set_env_variables.sh
-cd ./gitOps/docker
+cd ./docker
 
 podman compose up 
 cd ../../

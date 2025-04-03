@@ -7,7 +7,7 @@
   tasks:
     - name: Start docker services
       docker_compose:
-        project_src: "../../gitOps/docker"
+        project_src: "../../docker"
         files:
           - docker-compose.yml
         state: present

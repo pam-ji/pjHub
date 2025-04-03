@@ -11,3 +11,10 @@ scrape_configs:
     static_configs:
       - targets: ['postgresql-exporter:9187']
 
+  - job_name: 'envoy'
+    metrics_path: /stats/prometheus
+    static_configs:
+      - targets: ['envoy:19000']
+        labels:
+          group: 'envoy'
+
