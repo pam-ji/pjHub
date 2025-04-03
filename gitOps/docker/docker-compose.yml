@@ -1,121 +1,118 @@
-version: '3'
 networks:
-  app-network:
+  network1:
     driver: bridge
-x-minio-common: &minio-common
-  image: quay.io/minio/minio:RELEASE.2025-03-12T18-04-18Z
-  command: server --console-address ":9001" http://minio{1...2}/data{1...2}
-  expose:
-    - "9000"
-    - "9001"
-  environment:
-    MINIO_ROOT_USER: minioadmin
-    MINIO_ROOT_PASSWORD: minioadmin
-  healthcheck:
-    test: ["CMD", "mc", "ready", "local"]
-    interval: 5s
-    timeout: 5s
-    retries: 5
-
+  network: {}
 volumes:
-  data1-1:
-  data1-2:
-  data2-1:
-  data2-2:
+    postgresql:
+    prometheus:
+    grafana:
+    postgresql-exporter:
 services:
-  traefik:
-    image: traefik:v3
-    restart: always
-
-    ### This needs to be added
-    volumes: 
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-
-    command:
-      # provider
-      - "--providers.docker=true"
-
-      # log
-      - "--log.level=DEBUG"
-
-      # entry points
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-
-      # for https
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.tls=true"
-
-    networks:
-      - app-network
-    ports:
-      ### Ports without variables, always like this
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    # depends_on:
-    #   - minio1
-    #   - minio2
-    #   - minio3
-    #   - minio4
-  
+  envoy:
+    privileged: true
+    image: envoyproxy/envoy:v1.20-latest
     volumes:
-      - ./traefik.yml:/etc/traefik/traefik.yml
-    #   - /var/run/docker.sock:/var/run/docker.sock
-    # command: --configFile=/etc/traefik/traefik.yml
+    - ./envoy/served-config/envoy.yaml:/etc/envoy/config.yaml 
+    - ./envoy/configs/security/tls.crt:/etc/certs/tls.crt
+    - ./envoy/configs/security/tls.key:/etc/certs/tls.key
+    entrypoint: /usr/local/bin/envoy -c /etc/envoy/config.yaml 
+    networks:
+    - network
+    ports:
+    - "8000:8000"
+    - "8443:8443"
+    - "19000:19000"
+  upstream:
+    build:
+      context: ./envoy/upstream
+      dockerfile: service/Dockerfile
+    privileged: true
+    networks:
+    - network
+  auth:
+    build:
+      context: ./envoy/auth
+      dockerfile: service/Dockerfile
+    networks:
+    - network
+    privileged: true
+  prometheus:
+    image: prom/prometheus
+    privileged: true
+    volumes:
+    - ./prometheus/prometheus.yaml:/etc/prometheus.yml
+    networks:
+    - network
+    ports:
+    - "9090:9090"
 
-  # whoami:
-  #   image: traefik/whoami
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
+  grafana:
+    image: grafana/grafana:8.5.4
+    privileged: true
+    volumes:
+    - ./grafana/grafana.ini:/etc/grafana.ini
+    - ./grafana/datasource.yml:/etc/provisioning/datasources/datasource.yaml
+    - ./grafana/dashboard.json:/usr/share/public/dashboards/home.json
+    
+    ports:
+      - 3000:3000
+ 
+  # datanode:
+    # image: apache/ozone:latest
+    # ports:
+        # - 9864
+    # command: ["ozone","datanode"]
+    # env_file:
+        # - ./ozone/ozone.env
+  # om:
+    # image: apache/ozone:latest
+    # ports:
+        # - 9874:9874
+    # environment:
+        # ENSURE_OM_INITIALIZED: /data/metadata/om/current/VERSION
+        # WAITFOR: scm:9876
+    # env_file:
+        # - ./ozone/ozone.env
+    # command: ["ozone","om"]
+  # scm:
+    # image: apache/ozone:latest
+    # ports:
+        # - 9876:9876
+    # env_file:
+        # - ./ozone/ozone.env
+    # environment:
+        # ENSURE_SCM_INITIALIZED: /data/metadata/scm/current/VERSION
+    # command: ["ozone","scm"]
+  # recon:
+    # image: apache/ozone:latest
+    # ports:
+        # - 9888:9888
+    # env_file:
+        # - ./ozone/ozone.env
+    # command: ["ozone","recon"]
+  # s3g:
+    # image: apache/ozone:latest
+    # ports:
+        # - 9878:9878
+    # env_file:
+        # - ./ozone/ozone.env
+    # command: ["ozone","s3g"]
+#  
+# 
+  redis:
+    image: redis:latest
+    privileged: true
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    command: ["redis-server"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis.conf
 
-# services:
-#   traefik:
-#     image: traefik:v2.4
-#     command:
-#       - "--api.insecure=true"
-#       - "--providers.docker=true"
-#     # ports:
-#       # - "80:80"
-#       # - "8080:8080"
-#     volumes:
-#       - /var/run/docker.sock:/var/run/docker.sock
-#     ports:
-#       - "9000:9000"
-#       - "9001:9001"
-#     depends_on:
-#       - minio1
-#       - minio2
-#       - minio3
-#       - minio4
-  
-  # redis:
-  #   image: redis:latest
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-  #     interval: 1s
-  #     timeout: 3s
-  #     retries: 5
-  #   command: ["redis-server"]
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-  # redis:
-  #   image: redis:alpine
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-  #   sysctls:
-  #     - vm.overcommit_memory=1
-  # adminer:
-  #   image: adminer
-  #   restart: always
-  #   ports:
-  #     - 8080:8080
   # nginx:
   #   image: nginx:latest
   #   hostname: nginx
@@ -129,52 +126,49 @@ services:
   #     - minio2
   #     - minio3
   #     - minio4
-  
-  # postgres:
-  #   image: postgres:13
-  #   restart: always
-  #   shm_size: 128mb
-  #   privileged: true
-  #   environment:
-  #     POSTGRES_USER: "admin"
-  #     POSTGRES_PASSWORD: "POSTGRES_PASSWORD"
-  #     POSTGRES_DB: "POSTGRES_DB"
-  #     POSTGRES_INITDB_ARGS: "--data-checksums"
-  #     #POSTGRES_INITDB_WALDIR: "/var/lib/postgresql/db"
-  #     POSTGRES_HOST_AUTH_METHOD: "trust"
-  #   ports:
-  #     - "5432:5432"
-  #   volumes: ./data:/var/lib/postgresql/db
-  #   #user:  "1000:1000"
-  # minio1:
-  #   <<: *minio-common
-  #   hostname: minio1
-  #   networks:
-  #     - app-network
+  postgresql-exporter:
+    image: prometheuscommunity/postgres-exporter
+    container_name: postgresql-exporter
+    ports:
+        - "9187:9187"
+    environment:
+        DATA_SOURCE_NAME: "postgres://admin:POSTGRES_PASSWORD@postgresql/POSTGRES_DB?sslmode=disable"
+    depends_on:
+        prometheus:
+            condition: service_started
+        postgres:
+            condition: service_started
+    restart: unless-stopped
+    networks:
+        - network1
 
-  # minio2:
-  #   <<: *minio-common
-  #   hostname: minio2
-  #   networks:
-  #     - app-network
-
-  # minio:
-  #   image: minio/minio:latest
-  #   ports:
-  #     - "9000:9000"
-  #   environment:
-  #     MINIO_ROOT_USER: minio
-  #     MINIO_ROOT_PASSWORD: minio123
-  #   run: | 
-  #              server /data
-  #              sudo mkdir -p /data
-  #              sudo chmod -R u+rxw /data
-  #              sudo chown -R 1000:1000 /data
-  #   volumes:
-  #     - ./minio/data:/data
-  #   user: "1000:1000"
-  #   depends_on:
-  #     - postgres
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+    - network1
+  postgres:
+    image: postgres:13
+    restart: always
+    shm_size: 128mb
+    privileged: true
+    hostname: postgresql
+    environment:
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "POSTGRES_PASSWORD"
+      POSTGRES_DB: "POSTGRES_DB"
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      #POSTGRES_INITDB_WALDIR: "/var/lib/postgresql/db"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    ports:
+      - "5432:5432"
+    volumes: 
+      - ./data:/var/lib/postgresql/db
+    networks:
+      - network1
+    #user:  "1000:1000"
 
   # forgejo:
   #   image: mstreicherde/forgejo
