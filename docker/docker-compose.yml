@@ -3,9 +3,8 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.254.0/16
-          # gateway: 172.18.0.1
-  network: {}
+        - subnet: 200.0.0.0/16
+          gateway: 200.0.0.1
 volumes:
     postgresql:
     prometheus:
@@ -20,83 +19,23 @@ services:
     - ./envoy/configs/security/tls.key:/etc/certs/tls.key
     entrypoint: /usr/local/bin/envoy -c /etc/envoy/config.yaml 
     networks:
-    - network1
+      network1:
+        ipv4_address: 200.0.0.2
     ports:
     - "8000:8000"
     - "8443:8443"
     - "19000:19000"
-  upstream:
-    build:
-      context: ./envoy/upstream
-      dockerfile: service/Dockerfile
-    privileged: true
-    networks:
-    - network1
-  auth:
-    build:
-      context: ./envoy/auth
-      dockerfile: service/Dockerfile
-    networks:
-    - network1
-    privileged: true
-  prometheus:
-      image: prom/prometheus
-      hostname: prom
-      container_name: prometheus
-      privileged: true
-      volumes:
-          - ./prometheus/:/etc/prometheus/
-          - prometheus:/prometheus
-      command:
-          - '--config.file=/etc/prometheus/prometheus.yaml'
-          - '--storage.tsdb.path=/prometheus'
-          - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-          - '--web.console.templates=/usr/share/prometheus/consoles'
-      ports:
-          - "${PROMETHEUS_PORT:-9090}:9090"
-      restart: unless-stopped
-      networks:
-            - network1
 
-  grafana:
-      image: grafana/grafana
-      container_name: grafana
-      privileged: true
-
-      environment:
-          GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
-          GF_USERS_ALLOW_SIGN_UP: false
-      volumes:
-          - grafana:/var/lib/grafana
-      ports:
-          - "${GRAFANA_PORT:-3000}:3000"
-      restart: unless-stopped
-      networks:
-          - network1
-
-  adminer:
-    image: adminer
-    restart: always
+  graphql-api:
+    build: 
+      context: .
+      dockerfile: graphQl/Dockerfile.graphQl
+    environment:
+      - AWS_ENDPOINT=http://localstack:4566
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
     ports:
-      - 8080:8080
-    networks:
-    - network1
-  postgresql-exporter:
-      image: prometheuscommunity/postgres-exporter
-      container_name: postgresql-exporter
-      privileged: true
-      ports:
-          - "9187:9187"
-      environment:
-          DATA_SOURCE_NAME: "postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}?sslmode=disable"
-      depends_on:
-          prometheus:
-              condition: service_started
-          postgresql:
-              condition: service_healthy
-      restart: unless-stopped
-      networks:
-          - network1
+      - "5000:5000"
   postgresql:
       image: postgres:15.4
       hostname: postgresql
@@ -120,7 +59,94 @@ services:
           - "5432:5432"
       restart: unless-stopped
       networks:
-          - network1
+        network1:
+          ipv4_address: 200.0.0.4
+      
+  redis:
+    image: redis:latest
+    privileged: true
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    command: ["redis-server"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis.conf
+    networks:
+      network1:
+        ipv4_address: 200.0.0.5
+
+  forgejo:
+    image: mstreicherde/forgejo
+    networks:
+      network1:
+        ipv4_address: 200.0.0.6
+    ports:
+      - "2000:2000"
+      - "9022:22"
+    environment:
+      - USER=git
+      - USER_UID=1000
+      - USER_GID=1000
+      - FORGEJO__server__SSH_LISTEN_PORT=22
+      - FORGEJO__server__SSH_PORT=9022
+    restart: always
+    volumes:
+      - ./forgejo/data:/data
+      - ./forgejo/config:/etc/forgejo
+    depends_on:
+      - postgres
+
+  prometheus:
+      image: prom/prometheus
+      hostname: prom
+      container_name: prometheus
+      privileged: true
+      volumes:
+          - ./prometheus/:/etc/prometheus/
+          - prometheus:/prometheus
+      command:
+          - '--config.file=/etc/prometheus/prometheus.yaml'
+          - '--storage.tsdb.path=/prometheus'
+          - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+          - '--web.console.templates=/usr/share/prometheus/consoles'
+      ports:
+          - "${PROMETHEUS_PORT:-9090}:9090"
+      restart: unless-stopped
+      networks:
+        network1:
+          ipv4_address: 200.0.0.10
+
+  grafana:
+      image: grafana/grafana
+      container_name: grafana
+      privileged: true
+      environment:
+          GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+          GF_USERS_ALLOW_SIGN_UP: false
+      volumes:
+          - grafana:/var/lib/grafana
+      ports:
+          - "${GRAFANA_PORT:-3000}:3000"
+      restart: unless-stopped
+      networks:
+        network1:
+          ipv4_address: 200.0.0.11
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      network1:
+        ipv4_address: 200.0.0.12
+     
+
+
   # datanode:
     # image: apache/ozone:latest
     # ports:
@@ -163,78 +189,32 @@ services:
     # command: ["ozone","s3g"]
 #  
 # 
-  redis:
-    image: redis:latest
-    privileged: true
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-      interval: 1s
-      timeout: 3s
-      retries: 5
-    command: ["redis-server"]
+  postgresql-exporter:
+      image: prometheuscommunity/postgres-exporter
+      container_name: postgresql-exporter
+      privileged: true
+      ports:
+          - "9187:9187"
+      environment:
+          DATA_SOURCE_NAME: "postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}?sslmode=disable"
+      depends_on:
+          prometheus:
+              condition: service_started
+          postgresql:
+              condition: service_healthy
+      restart: unless-stopped
+      networks:
+          - network1
+  htmlgen-frontend:
+    build:
+      context: ../../frontend
+      dockerfile: ./htmlgen/Dockerfile.frontend
     ports:
-      - "6379:6379"
-    volumes:
-      - ./redis/redis.conf:/usr/local/etc/redis.conf
-    networks:
-      - network1
-  # nginx:
-  #   image: nginx:latest
-  #   hostname: nginx
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
-  #   ports:
-  #     - "9000:9000"
-  #     - "9001:9001"
-  #   depends_on:
-  #     - minio1
-  #     - minio2
-  #     - minio3
-  #     - minio4
- 
-    #user:  "1000:1000"
-
-  # forgejo:
-  #   image: mstreicherde/forgejo
-  #   ports:
-  #     - "2000:2000"
-  #     - "9022:22"
-  #   environment:
-  #     - USER=git
-  #     - USER_UID=1000
-  #     - USER_GID=1000
-  #     - FORGEJO__server__SSH_LISTEN_PORT=22
-  #     - FORGEJO__server__SSH_PORT=9022
-  #   restart: always
-  #   volumes:
-  #     - ./forgejo/data:/data
-  #     - ./forgejo/config:/etc/forgejo
-  #   depends_on:
-  #     - postgres
-  #   networks:
-  #     - app-network
-
-  # graphql-api:
-  #   build: 
-  #     context: .
-  #     dockerfile: graphQl/Dockerfile.graphQl
-  #   environment:
-  #     - AWS_ENDPOINT=http://localstack:4566
-  #     - REDIS_HOST=redis
-  #     - POSTGRES_HOST=postgres
-  #   ports:
-  #     - "5000:5000"
-  #
-  # htmlgen-frontend:
-  #   build:
-  #     context: ../../frontend
-  #     dockerfile: ./htmlgen/Dockerfile.frontend
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - API_URL=http://htmlgen-api:5000
-  #     - REDIS_HOST=redis
-  #     - POSTGRES_HOST=postgres
+      - "3000:3000"
+    environment:
+      - API_URL=http://htmlgen-api:5000
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
   #
   # htmlgen-api:
   #     image: localhost:3001/pjhub/htmlgen-api:latest
@@ -292,51 +272,6 @@ services:
   #     ports:
   #       - "5000:5000"
   #
-  # traefik:
-  #     image: traefik:v2.4
-  #     command:
-  #       - "--api.insecure=true"
-  #       - "--providers.docker=true"
-  #     ports:
-  #       - "80:80"
-  #       - "8080:8080"
-  #     volumes:
-  #       - /var/run/docker.sock:/var/run/docker.sock
-  #
-  # minio:
-  #     image: minio/minio:latest
-  #     ports:
-  #       - "9000:9000"
-  #     environment:
-  #       MINIO_ROOT_USER: minio
-  #       MINIO_ROOT_PASSWORD: minio123
-  #     command: server /data
-  #     volumes:
-  #       - ./minio/data:/data
-  #
-  # grafana:
-  #     build:
-  #       context: .
-  #       dockerfile:  /grafana/Dockerfile
-  #     ports:
-  #       - "3000:3000"
-  #     environment:
-  #       - GF_SECURITY_ADMIN_PASSWORD=admin
-  #       - GF_SECURITY_ADMIN_USER=admin
-  #       - GF_SERVER_HTTP_PORT=3000
-  #     networks:
-  #       - app-network
-  #     depends_on:
-  #       - prometheus
-  #
-  # prometheus:
-  #     image: prom/prometheus:latest
-  #     ports:
-  #       - "9090:9090"
-  #     volumes:
-  #       - ./prometheus:/etc/prometheus
-  #     command:
-  #       - '--config.file=/etc/prometheus/prometheus.yml'
   #
   # vault:
   #     image: vault:latest
