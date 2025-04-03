@@ -2,9 +2,108 @@ version: '3'
 networks:
   app-network:
     driver: bridge
+x-minio-common: &minio-common
+  image: quay.io/minio/minio:RELEASE.2025-03-12T18-04-18Z
+  command: server --console-address ":9001" http://minio{1...2}/data{1...2}
+  expose:
+    - "9000"
+    - "9001"
+  environment:
+    MINIO_ROOT_USER: minioadmin
+    MINIO_ROOT_PASSWORD: minioadmin
+  healthcheck:
+    test: ["CMD", "mc", "ready", "local"]
+    interval: 5s
+    timeout: 5s
+    retries: 5
 
+volumes:
+  data1-1:
+  data1-2:
+  data2-1:
+  data2-2:
 services:
-  #redis:
+  traefik:
+    image: traefik:v3
+    restart: always
+
+    ### This needs to be added
+    volumes: 
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    command:
+      # provider
+      - "--providers.docker=true"
+
+      # log
+      - "--log.level=DEBUG"
+
+      # entry points
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
+      # for https
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls=true"
+
+    networks:
+      - app-network
+    ports:
+      ### Ports without variables, always like this
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    # depends_on:
+    #   - minio1
+    #   - minio2
+    #   - minio3
+    #   - minio4
+  
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml
+    #   - /var/run/docker.sock:/var/run/docker.sock
+    # command: --configFile=/etc/traefik/traefik.yml
+
+  # whoami:
+  #   image: traefik/whoami
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
+
+# services:
+#   traefik:
+#     image: traefik:v2.4
+#     command:
+#       - "--api.insecure=true"
+#       - "--providers.docker=true"
+#     # ports:
+#       # - "80:80"
+#       # - "8080:8080"
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock
+#     ports:
+#       - "9000:9000"
+#       - "9001:9001"
+#     depends_on:
+#       - minio1
+#       - minio2
+#       - minio3
+#       - minio4
+  
+  # redis:
+  #   image: redis:latest
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+  #     interval: 1s
+  #     timeout: 3s
+  #     retries: 5
+  #   command: ["redis-server"]
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+  # redis:
   #   image: redis:alpine
   #   ports:
   #     - "6379:6379"
@@ -17,22 +116,48 @@ services:
   #   restart: always
   #   ports:
   #     - 8080:8080
-  postgres:
-    image: postgres:13
-    restart: always
-    shm_size: 128mb
-    privileged: true
-    environment:
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: "POSTGRES_PASSWORD"
-      POSTGRES_DB: "POSTGRES_DB"
-      POSTGRES_INITDB_ARGS: "--data-checksums"
-      #POSTGRES_INITDB_WALDIR: "/var/lib/postgresql/db"
-      POSTGRES_HOST_AUTH_METHOD: "trust"
-    ports:
-      - "5432:5432"
-    volumes: ./data:/var/lib/postgresql/db
-    #user:  "1000:1000"
+  # nginx:
+  #   image: nginx:latest
+  #   hostname: nginx
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #   ports:
+  #     - "9000:9000"
+  #     - "9001:9001"
+  #   depends_on:
+  #     - minio1
+  #     - minio2
+  #     - minio3
+  #     - minio4
+  
+  # postgres:
+  #   image: postgres:13
+  #   restart: always
+  #   shm_size: 128mb
+  #   privileged: true
+  #   environment:
+  #     POSTGRES_USER: "admin"
+  #     POSTGRES_PASSWORD: "POSTGRES_PASSWORD"
+  #     POSTGRES_DB: "POSTGRES_DB"
+  #     POSTGRES_INITDB_ARGS: "--data-checksums"
+  #     #POSTGRES_INITDB_WALDIR: "/var/lib/postgresql/db"
+  #     POSTGRES_HOST_AUTH_METHOD: "trust"
+  #   ports:
+  #     - "5432:5432"
+  #   volumes: ./data:/var/lib/postgresql/db
+  #   #user:  "1000:1000"
+  # minio1:
+  #   <<: *minio-common
+  #   hostname: minio1
+  #   networks:
+  #     - app-network
+
+  # minio2:
+  #   <<: *minio-common
+  #   hostname: minio2
+  #   networks:
+  #     - app-network
+
   # minio:
   #   image: minio/minio:latest
   #   ports:
@@ -40,7 +165,11 @@ services:
   #   environment:
   #     MINIO_ROOT_USER: minio
   #     MINIO_ROOT_PASSWORD: minio123
-  #   command: server /data
+  #   run: | 
+  #              server /data
+  #              sudo mkdir -p /data
+  #              sudo chmod -R u+rxw /data
+  #              sudo chown -R 1000:1000 /data
   #   volumes:
   #     - ./minio/data:/data
   #   user: "1000:1000"
@@ -257,3 +386,4 @@ services:
   #     depends_on:
   #       - pytorch
   #       - graphql-api
+
